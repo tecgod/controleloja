@@ -562,6 +562,7 @@ function defaultState(){
 }
 
 let state = loadState();
+dedupContasFixas();
 
 function loadState(){
   try{
@@ -580,6 +581,27 @@ function loadState(){
 function saveState(){
   state.lancamentos.forEach(l=>{ if(l.data) l.data = sanitizarData(l.data); });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// Corrige duplicidade de contas fixas com o mesmo nome (pode ocorrer quando o
+// mesmo nome de conta foi cadastrado em dispositivos diferentes antes de sincronizar).
+// Mantém apenas o registro mais recente (por updatedAt) e marca os demais como excluídos,
+// evitando que o valor "antigo" volte a aparecer depois de uma edição.
+function dedupContasFixas(){
+  if(!state.contasFixas||!state.contasFixas.length) return;
+  const porNome = {};
+  let mudou = false;
+  state.contasFixas.filter(c=>!c.deleted).forEach(c=>{
+    const chave = (c.nome||'').trim().toLowerCase();
+    const atual = porNome[chave];
+    if(!atual){ porNome[chave]=c; return; }
+    const manter = (c.updatedAt||0) >= (atual.updatedAt||0) ? c : atual;
+    const remover = manter===c ? atual : c;
+    remover.deleted = true; remover.updatedAt = Date.now();
+    porNome[chave] = manter;
+    mudou = true;
+  });
+  if(mudou) saveState();
 }
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -771,11 +793,14 @@ function renderContas(){
     const info = pag[c.id];
     const pago = info&&info.pago;
     const valorAtual = info&&info.valor!=null ? info.valor : c.valor;
+    const inputId = `valorConta_${mesKey}_${c.id}`;
     return `<tr>
       <td>${String(c.dia).padStart(2,'0')}</td>
       <td>${c.nome}</td>
-      <td><input type="number" step="0.01" value="${valorAtual}" style="width:110px" ${pago?'disabled':''}
-           onchange="editarValorMes('${mesKey}','${c.id}',this.value)"></td>
+      <td style="display:flex;gap:6px;align-items:center">
+        <input type="number" step="0.01" value="${valorAtual}" id="${inputId}" style="width:110px" ${pago?'disabled':''}>
+        ${pago?'':`<button class="primary" style="padding:6px 10px;font-size:12px" onclick="salvarValorConta('${mesKey}','${c.id}','${inputId}')">💾 Salvar</button>`}
+      </td>
       <td>${pago?'<span class="pago-badge">PAGO</span>':'<span class="pendente-badge">PENDENTE</span>'}</td>
       <td>${pago
         ?`<button class="primary red" style="padding:6px 10px;font-size:12px" onclick="desfazerPagamento('${mesKey}','${c.id}')">Desfazer</button>`
@@ -797,12 +822,22 @@ function renderContasCadastro(){
   </tr>`).join('') || '<tr><td colspan="4" class="empty">Nenhuma conta cadastrada.</td></tr>';
 }
 
-function editarValorMes(mesKey,contaId,novoValor){
+function salvarValorConta(mesKey,contaId,inputId){
+  const input = document.getElementById(inputId);
+  const valorNum = parseFloat(input&&input.value)||0;
+  if(valorNum<=0){ toast('Informe um valor válido.','error'); return; }
   if(!state.pagamentosPorMes[mesKey]) state.pagamentosPorMes[mesKey]={};
   const pag = state.pagamentosPorMes[mesKey];
-  if(!pag[contaId]) pag[contaId]={pago:false,valor:parseFloat(novoValor)||0};
-  else pag[contaId].valor=parseFloat(novoValor)||0;
+  if(!pag[contaId]) pag[contaId]={pago:false,valor:valorNum};
+  else pag[contaId].valor=valorNum;
+  // O vencimento (dia) é fixo, mas o valor pode mudar — atualiza também o cadastro
+  // base da conta, para que a alteração seja sincronizada entre dispositivos e
+  // refletida em todas as telas (dashboard, próximos vencimentos, cadastro, etc).
+  const conta = state.contasFixas.find(c=>c.id===contaId);
+  if(conta){ conta.valor=valorNum; conta.updatedAt=Date.now(); }
   saveState();
+  renderContas(); renderDashboard(); renderEmpresa();
+  toast('✅ Valor atualizado!','success');
 }
 
 function pagarConta(mesKey,contaId){
@@ -1565,6 +1600,7 @@ function mergeComSheets(remoto){
     if(!local) state.contasFixas.push(r);
     else if((r.updatedAt||0)>(local.updatedAt||0)) Object.assign(local,r);
   });
+  dedupContasFixas();
 }
 
 /* ====================== ZERAR DADOS ====================== */
