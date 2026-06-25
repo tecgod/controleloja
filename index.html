@@ -453,7 +453,7 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
   <section class="block">
     <h2>☁️ Sincronização com Google Sheets</h2>
     <small class="hint">
-      Sincronização <b>manual</b>: ao clicar em "🔄 Sincronizar" (no topo ou aqui), os dados locais são enviados para a planilha e os dados da planilha são trazidos para o app — sem duplicar. Os dados ficam separados por abas: <b>Lancamentos, ContasFixas, Retiradas, Historico</b>.
+      Sincronização ao clicar em "🔄 Sincronizar" (no topo ou aqui): os dados locais são enviados para a planilha e os dados da planilha são trazidos para o app — sem duplicar. Os dados ficam separados por abas: <b>Lancamentos, ContasFixas, Retiradas, Historico</b>.
     </small>
     <div class="form-grid" style="margin-top:14px;">
       <div style="grid-column:1/-1;"><label>URL do Web App (Apps Script)</label>
@@ -469,7 +469,7 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
       <span id="syncLabel">Sincronização manual: configure a URL acima para começar.</span>
     </div>
     <small class="hint" style="margin-top:8px;">
-      ℹ️ A sincronização só acontece quando você clicar no botão. Nenhum dado é enviado automaticamente.
+      ℹ️ Com a URL configurada, o app sincroniza automaticamente toda vez que você abre a página. Você também pode forçar uma sincronização a qualquer momento clicando em "🔄 Sincronizar".
     </small>
   </section>
 
@@ -1814,6 +1814,14 @@ renderContas();
 renderRetiradas();
 renderGasCode();
 renderSyncTab();
+
+// Sincronização automática ao abrir o app — só roda se já houver uma URL do
+// Google Sheets configurada. Usa a mesma função do botão "Sincronizar agora",
+// então o usuário vê o mesmo retorno visual (status, toast) de sempre.
+if(getSyncUrl()){
+  syncManual();
+}
+
 </script>
 </body>
 </html>
