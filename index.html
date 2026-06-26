@@ -602,7 +602,13 @@ function dedupContasFixas(){
 }
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-function todayStr(){ return new Date().toISOString().slice(0,10); }
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function dataLocalStr(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 function fmt(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtData(d){
   if(!d) return '-';
@@ -618,7 +624,7 @@ function sanitizarData(d){
   const s = String(d);
   if(s.length<=10) return s;
   const parsed = new Date(s);
-  if(!isNaN(parsed.getTime())) return parsed.toISOString().slice(0,10);
+  if(!isNaN(parsed.getTime())) return dataLocalStr(parsed);
   return s.slice(0,10);
 }
 
@@ -1045,8 +1051,8 @@ function aplicarFiltroRapido(tipo){
   const hoje = new Date();
   let ini,fim;
   if(tipo==='diario'){ ini=fim=todayStr(); }
-  else if(tipo==='semanal'){ ini=new Date(hoje.getTime()-6*86400000).toISOString().slice(0,10); fim=todayStr(); }
-  else if(tipo==='quinzenal'){ ini=new Date(hoje.getTime()-14*86400000).toISOString().slice(0,10); fim=todayStr(); }
+  else if(tipo==='semanal'){ ini=dataLocalStr(new Date(hoje.getTime()-6*86400000)); fim=todayStr(); }
+  else if(tipo==='quinzenal'){ ini=dataLocalStr(new Date(hoje.getTime()-14*86400000)); fim=todayStr(); }
   else if(tipo==='mensal'){
     ini=mesAtualKey()+'-01';
     fim=mesAtualKey()+'-'+String(new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate()).padStart(2,'0');
@@ -1345,7 +1351,7 @@ function gerarDicasReais(){
   const hoje=new Date();
   const hojeStr=todayStr();
   const mesAtual=mesAtualKey();
-  const trintaAtrasStr=new Date(hoje.getTime()-30*86400000).toISOString().slice(0,10);
+  const trintaAtrasStr=dataLocalStr(new Date(hoje.getTime()-30*86400000));
   const saldo=saldoEmpresa();
   const entradasMes=totalPorTipo('entrada',mesAtual);
   const saidasMes=totalPorTipo('saida',mesAtual)+totalPorTipo('retirada',mesAtual)+totalPorTipo('conta',mesAtual);
@@ -1617,7 +1623,7 @@ function mergeComSheets(remoto){
   const mapaLanc={};
   state.lancamentos.forEach(l=>mapaLanc[l.id]=l);
   (remoto.lancamentos||[]).forEach(r=>{
-    if(r.data){ const d=String(r.data); if(d.length>10){ const p=new Date(d); r.data=isNaN(p.getTime())?d.slice(0,10):p.toISOString().slice(0,10); } else r.data=d.slice(0,10); }
+    if(r.data){ const d=String(r.data); if(d.length>10){ const p=new Date(d); r.data=isNaN(p.getTime())?d.slice(0,10):dataLocalStr(p); } else r.data=d.slice(0,10); }
     const local=mapaLanc[r.id];
     if(!local) state.lancamentos.push(r);
     else if((r.updatedAt||0)>(local.updatedAt||0)) Object.assign(local,r);
@@ -1859,7 +1865,7 @@ function copiarAppsScript(){
   state.lancamentos.forEach(l=>{
     if(!l.data) return;
     const d=String(l.data);
-    if(d.length>10){ const p=new Date(d); l.data=isNaN(p.getTime())?d.slice(0,10):p.toISOString().slice(0,10); alt=true; }
+    if(d.length>10){ const p=new Date(d); l.data=isNaN(p.getTime())?d.slice(0,10):dataLocalStr(p); alt=true; }
   });
   if(alt) saveState();
 })();
