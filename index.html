@@ -1189,6 +1189,37 @@ function abrirModal(tipo){
     }).join('')+'</div>';
     relatorioAtualParaImpressao={titulo:'📤 Saídas Totais do Mês',subtitulo:mesLabelCap,totalLabel:'Total de Saídas',totalValor:fmt(total),
       linhas:[{desc:'Saídas da Empresa',valor:'- '+fmt(sai)},{desc:'Retiradas Diárias',valor:'- '+fmt(ret)},{desc:'Contas Pessoais Pagas',valor:'- '+fmt(con)},{desc:'TOTAL',valor:'- '+fmt(total),destaque:true},...rows.map(l=>({data:fmtData(l.data),tag:tipoLabel(l.tipo),desc:l.desc,valor:'- '+fmt(l.valor)}))]};
+  } else if(tipo==='saldo'){
+    const ent=totalPorTipo('entrada');
+    const sai2=totalPorTipo('saida');
+    const ret2=totalPorTipo('retirada');
+    const con2=totalPorTipo('conta');
+    const totalSaldo=ent-sai2-ret2-con2;
+    document.getElementById('reportSubtitulo').textContent='Saldo acumulado (todo o período)';
+    document.getElementById('reportTotal').style.color=totalSaldo>=0?'var(--green)':'var(--red)';
+    document.getElementById('reportTotal').textContent=fmt(totalSaldo);
+    const rowsSaldo=state.lancamentos.filter(l=>!l.deleted&&['entrada','saida','retirada','conta'].includes(l.tipo))
+      .sort((a,b)=>b.data.localeCompare(a.data));
+    body.innerHTML=`<div class="report-row"><span class="rr-data">📥</span><span class="rr-desc" style="font-weight:700">Entradas</span><span class="rr-val" style="color:var(--green)">+ ${fmt(ent)}</span></div>
+    <div class="report-row"><span class="rr-data">📤</span><span class="rr-desc">Saídas da Empresa</span><span class="rr-val" style="color:var(--red)">- ${fmt(sai2)}</span></div>
+    <div class="report-row"><span class="rr-data">🛒</span><span class="rr-desc">Retiradas Diárias</span><span class="rr-val" style="color:var(--yellow)">- ${fmt(ret2)}</span></div>
+    <div class="report-row"><span class="rr-data">💳</span><span class="rr-desc">Contas Pessoais Pagas</span><span class="rr-val" style="color:var(--purple)">- ${fmt(con2)}</span></div>
+    <div class="report-row" style="margin-top:8px;background:rgba(255,255,255,.03);border-radius:8px;padding:12px 8px;">
+      <span class="rr-data">💰</span><span class="rr-desc" style="font-weight:700;">Saldo (Entradas − Saídas − Retiradas − Contas)</span>
+      <span class="rr-val" style="color:${totalSaldo>=0?'var(--green)':'var(--red)'};font-size:17px;">${fmt(totalSaldo)}</span>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px;">` +
+    rowsSaldo.map(l=>{
+      const cor=l.tipo==='entrada'?'var(--green)':l.tipo==='saida'?'var(--red)':l.tipo==='retirada'?'var(--yellow)':'var(--purple)';
+      const sinal=l.tipo==='entrada'?'+':'-';
+      return `<div class="report-row">
+        <span class="rr-data">${fmtData(l.data)}</span>
+        <span class="rr-desc">${l.desc} <span style="font-size:10px;color:var(--txt2)">[${tipoLabel(l.tipo)}]</span></span>
+        <span class="rr-val" style="color:${cor}">${sinal} ${fmt(l.valor)}</span>
+      </div>`;
+    }).join('')+'</div>';
+    relatorioAtualParaImpressao={titulo:'💰 Composição do Saldo',subtitulo:'Saldo acumulado (todo o período)',totalLabel:'Saldo da Empresa',totalValor:fmt(totalSaldo),
+      linhas:[{desc:'Entradas',valor:'+ '+fmt(ent)},{desc:'Saídas da Empresa',valor:'- '+fmt(sai2)},{desc:'Retiradas Diárias',valor:'- '+fmt(ret2)},{desc:'Contas Pessoais Pagas',valor:'- '+fmt(con2)},{desc:'SALDO',valor:fmt(totalSaldo),destaque:true},...rowsSaldo.map(l=>({data:fmtData(l.data),tag:tipoLabel(l.tipo),desc:l.desc,valor:(l.tipo==='entrada'?'+ ':'- ')+fmt(l.valor)}))]};
   } else {
     const rows=state.lancamentos.filter(l=>!l.deleted&&conf.tipos.includes(l.tipo)&&sanitizarData(l.data).slice(0,7)===mesKey)
       .sort((a,b)=>b.data.localeCompare(a.data));
