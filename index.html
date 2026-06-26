@@ -78,6 +78,24 @@ tr:hover td{background:rgba(255,255,255,.02);}
 .tag.saida{background:rgba(255,93,93,.15);color:var(--red);}
 .tag.retirada{background:rgba(255,184,77,.15);color:var(--yellow);}
 .tag.conta{background:rgba(167,139,250,.15);color:var(--purple);}
+.pay-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:7px;font-size:11px;font-weight:700;background:rgba(77,159,255,.12);color:var(--txt);white-space:nowrap;}
+.pay-badge.pix{background:rgba(77,159,255,.15);color:var(--blue);}
+.pay-badge.dinheiro{background:rgba(61,220,132,.15);color:var(--green);}
+.pay-badge.debito{background:rgba(255,184,77,.15);color:var(--yellow);}
+.pay-badge.credito{background:rgba(167,139,250,.15);color:var(--purple);}
+.pay-badge.nao_informado{background:rgba(154,161,178,.13);color:var(--txt2);}
+.payment-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;}
+.payment-summary-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;}
+.payment-summary-card h3{font-size:13px;margin:0 0 10px;color:var(--txt);}
+.payment-line{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid rgba(255,255,255,.05);padding:8px 0;font-size:12.5px;}
+.payment-line:first-of-type{border-top:none;}
+.payment-line strong{white-space:nowrap;}
+.payment-line.pos strong{color:var(--green);}
+.payment-line.neg strong{color:var(--red);}
+.payment-line.info strong{color:var(--blue);}
+.payment-mini{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:10px;padding:10px;margin:0 0 12px;}
+.payment-mini-title{font-size:12px;color:var(--txt2);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em;}
+.payment-mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:6px;}
 .pago-badge{background:rgba(61,220,132,.15);color:var(--green);padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;}
 .pendente-badge{background:rgba(255,184,77,.15);color:var(--yellow);padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;}
 .empty{color:var(--txt2);font-size:13px;padding:14px 0;text-align:center;}
@@ -290,6 +308,12 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
     </div>
   </div>
 
+  <section class="block">
+    <h2>💳 Entradas, saídas e saldo por forma</h2>
+    <div class="payment-summary-grid" id="pagamentoResumo"></div>
+    <small class="hint">Entradas e saídas mostram o mês atual. O saldo por forma é acumulado desde o início.</small>
+  </section>
+
   <div class="charts-grid">
     <div class="chart-box">
       <h2>📊 Para onde foi o dinheiro (mês atual)</h2>
@@ -319,7 +343,7 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
   <section class="block">
     <h2>🕓 Últimos lançamentos</h2>
     <div class="table-wrap"><table>
-      <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
+      <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Forma</th><th>Valor</th><th></th></tr></thead>
       <tbody id="dashUltimos"></tbody>
     </table></div>
   </section>
@@ -333,6 +357,7 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
       <div><label>Data</label><input type="date" id="entData"></div>
       <div><label>Descrição</label><input type="text" id="entDesc" placeholder="Ex: Venda balcão"></div>
       <div><label>Valor (R$)</label><input type="number" step="0.01" id="entValor" placeholder="0,00"></div>
+      <div><label>Forma de entrada</label><select id="entForma"><option value="pix">Pix</option><option value="dinheiro">Dinheiro</option><option value="debito">Débito</option><option value="credito">Crédito</option></select></div>
     </div>
     <button class="primary green" onclick="addEntrada()">Registrar Entrada</button>
   </section>
@@ -343,6 +368,7 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
       <div><label>Data</label><input type="date" id="saiData"></div>
       <div><label>Descrição</label><input type="text" id="saiDesc" placeholder="Ex: Compra de material"></div>
       <div><label>Valor (R$)</label><input type="number" step="0.01" id="saiValor" placeholder="0,00"></div>
+      <div><label>Forma de saída</label><select id="saiForma"><option value="pix">Pix</option><option value="dinheiro">Dinheiro</option><option value="debito">Débito</option><option value="credito">Crédito</option></select></div>
     </div>
     <button class="primary red" onclick="addSaidaEmpresa()">Registrar Saída</button>
   </section>
@@ -350,7 +376,7 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
   <section class="block">
     <h2>📋 Movimentos da Empresa</h2>
     <div class="table-wrap"><table>
-      <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
+      <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Forma</th><th>Valor</th><th></th></tr></thead>
       <tbody id="empresaTable"></tbody>
     </table></div>
     <div class="empty" id="empresaEmpty" style="display:none;">Nenhum lançamento ainda.</div>
@@ -372,7 +398,7 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
   <section class="block">
     <h2>📅 Vencimentos do mês</h2>
     <div class="table-wrap"><table>
-      <thead><tr><th>Dia</th><th>Conta</th><th>Valor (R$)</th><th>Status</th><th>Ação</th></tr></thead>
+      <thead><tr><th>Dia</th><th>Conta</th><th>Valor (R$)</th><th>Forma de retirada</th><th>Status</th><th>Ação</th></tr></thead>
       <tbody id="contasTable"></tbody>
     </table></div>
   </section>
@@ -401,6 +427,7 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
       <div><label>Data</label><input type="date" id="retData"></div>
       <div><label>Descrição</label><input type="text" id="retDesc" placeholder="Ex: Mercado, padaria, etc."></div>
       <div><label>Valor (R$)</label><input type="number" step="0.01" id="retValor" placeholder="0,00"></div>
+      <div><label>Forma de retirada</label><select id="retForma"><option value="pix">Pix</option><option value="dinheiro">Dinheiro</option><option value="debito">Débito</option><option value="credito">Crédito</option></select></div>
     </div>
     <button class="primary yellow" onclick="addRetirada()">Registrar Retirada</button>
   </section>
@@ -408,7 +435,7 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
   <section class="block">
     <h2>📋 Retiradas registradas</h2>
     <div class="table-wrap"><table>
-      <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
+      <thead><tr><th>Data</th><th>Descrição</th><th>Forma de retirada</th><th>Valor</th><th></th></tr></thead>
       <tbody id="retiradasTable"></tbody>
     </table></div>
     <div class="empty" id="retiradasEmpty" style="display:none;">Nenhuma retirada ainda.</div>
@@ -437,7 +464,7 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
   <section class="block">
     <h2>📋 Lançamentos do período</h2>
     <div class="table-wrap"><table>
-      <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th></tr></thead>
+      <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Forma</th><th>Valor</th></tr></thead>
       <tbody id="relTable"></tbody>
     </table></div>
     <div class="empty" id="relEmpty" style="display:none;">Nenhum lançamento no período.</div>
@@ -478,12 +505,12 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;font-size:13px;">
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;">
         <div style="font-weight:700;color:var(--green);margin-bottom:6px;">📥 Lancamentos</div>
-        <div style="color:var(--txt2);line-height:1.7;">ID · Data · Tipo · Descrição · Valor · UpdatedAt · Deleted</div>
+        <div style="color:var(--txt2);line-height:1.7;">ID · Data · Tipo · Descrição · Valor · FormaPagamento · UpdatedAt · Deleted</div>
         <div style="font-size:11px;margin-top:6px;color:var(--txt2);">Entradas (faturamento/recebimento)</div>
       </div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;">
         <div style="font-weight:700;color:var(--red);margin-bottom:6px;">📤 SaidasEmpresa</div>
-        <div style="color:var(--txt2);line-height:1.7;">ID · Data · Descrição · Valor · UpdatedAt · Deleted</div>
+        <div style="color:var(--txt2);line-height:1.7;">ID · Data · Descrição · Valor · FormaPagamento · UpdatedAt · Deleted</div>
         <div style="font-size:11px;margin-top:6px;color:var(--txt2);">Saídas/despesas da empresa (aba própria)</div>
       </div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;">
@@ -493,12 +520,12 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
       </div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;">
         <div style="font-weight:700;color:var(--yellow);margin-bottom:6px;">🛒 Retiradas</div>
-        <div style="color:var(--txt2);line-height:1.7;">ID · Data · Descrição · Valor · UpdatedAt · Deleted</div>
+        <div style="color:var(--txt2);line-height:1.7;">ID · Data · Descrição · Valor · FormaPagamento · UpdatedAt · Deleted</div>
         <div style="font-size:11px;margin-top:6px;color:var(--txt2);">Retiradas diárias (saída diária), aba própria</div>
       </div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;">
         <div style="font-weight:700;color:var(--blue);margin-bottom:6px;">📜 Historico</div>
-        <div style="color:var(--txt2);line-height:1.7;">ID · Data · Tipo · Descrição · Valor · Status</div>
+        <div style="color:var(--txt2);line-height:1.7;">ID · Data · Tipo · Descrição · Valor · FormaPagamento · Status</div>
         <div style="font-size:11px;margin-top:6px;color:var(--txt2);">Histórico completo (somente leitura)</div>
       </div>
     </div>
@@ -550,6 +577,34 @@ const STORAGE_KEY = 'controle_financeiro_v2';
 const ADMIN_SENHA_KEY = 'controle_financeiro_admin_senha_v1';
 const SYNC_URL_KEY = 'controle_financeiro_sync_url_v1';
 
+const FORMAS_PAGAMENTO = [
+  {id:'pix',label:'Pix',icon:'⚡'},
+  {id:'dinheiro',label:'Dinheiro',icon:'💵'},
+  {id:'debito',label:'Débito',icon:'💳'},
+  {id:'credito',label:'Crédito',icon:'💳'},
+  {id:'nao_informado',label:'Não informado',icon:'❔'}
+];
+const FORMAS_NOVO_LANCAMENTO = ['pix','dinheiro','debito','credito'];
+
+function normalizarFormaPagamento(fp){
+  if(fp===undefined||fp===null||String(fp).trim()==='') return 'nao_informado';
+  const raw=String(fp).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if(['pix','picpay'].includes(raw)) return 'pix';
+  if(['dinheiro','cash','especie','especie'].includes(raw)) return 'dinheiro';
+  if(['debito','cartao de debito','cartao debito','debit'].includes(raw)) return 'debito';
+  if(['credito','cartao de credito','cartao credito','credit'].includes(raw)) return 'credito';
+  if(['nao_informado','nao informado','sem informacao','indefinido'].includes(raw)) return 'nao_informado';
+  return 'nao_informado';
+}
+function formaPagamentoInfo(fp){ return FORMAS_PAGAMENTO.find(f=>f.id===normalizarFormaPagamento(fp))||FORMAS_PAGAMENTO[4]; }
+function formaPagamentoLabel(fp){ return formaPagamentoInfo(fp).label; }
+function formaPagamentoBadgeHTML(fp){ const info=formaPagamentoInfo(fp); return `<span class="pay-badge ${info.id}">${info.icon} ${info.label}</span>`; }
+function formaPagamentoSelectHTML(id,selected,disabled=false){
+  const sel=normalizarFormaPagamento(selected||'pix');
+  const ids=FORMAS_NOVO_LANCAMENTO.includes(sel)?FORMAS_NOVO_LANCAMENTO:[...FORMAS_NOVO_LANCAMENTO,'nao_informado'];
+  return `<select id="${id}" ${disabled?'disabled':''}>${ids.map(fid=>{const f=formaPagamentoInfo(fid);return `<option value="${f.id}" ${f.id===sel?'selected':''}>${f.label}</option>`;}).join('')}</select>`;
+}
+
 function defaultState(){
   return {
     lancamentos: [],
@@ -576,7 +631,10 @@ function loadState(){
 }
 
 function saveState(){
-  state.lancamentos.forEach(l=>{ if(l.data) l.data = sanitizarData(l.data); });
+  state.lancamentos.forEach(l=>{
+    if(l.data) l.data = sanitizarData(l.data);
+    l.formaPagamento = normalizarFormaPagamento(l.formaPagamento);
+  });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
@@ -682,6 +740,55 @@ function pendentesMes(mesKey){
   return total;
 }
 function tipoLabel(t){ return {entrada:'Entrada',saida:'Saída Empresa',retirada:'Retirada Diária',conta:'Conta Pessoal'}[t]||t; }
+function totalPorTipoForma(tipo,forma,mesKey){
+  const f=normalizarFormaPagamento(forma);
+  return state.lancamentos
+    .filter(l=>!l.deleted && l.tipo===tipo && normalizarFormaPagamento(l.formaPagamento)===f && (!mesKey||sanitizarData(l.data).slice(0,7)===mesKey))
+    .reduce((s,l)=>s+Number(l.valor),0);
+}
+function totaisPorForma(tipos,mesKey){
+  const res={pix:0,dinheiro:0,debito:0,credito:0,nao_informado:0};
+  state.lancamentos.filter(l=>!l.deleted && tipos.includes(l.tipo) && (!mesKey||sanitizarData(l.data).slice(0,7)===mesKey))
+    .forEach(l=>{ const f=normalizarFormaPagamento(l.formaPagamento); res[f]=(res[f]||0)+Number(l.valor); });
+  return res;
+}
+function saldoPorForma(mesKey){
+  const entradas=totaisPorForma(['entrada'],mesKey);
+  const saidas=totaisPorForma(['saida','retirada','conta'],mesKey);
+  const res={pix:0,dinheiro:0,debito:0,credito:0,nao_informado:0};
+  Object.keys(res).forEach(f=>res[f]=(entradas[f]||0)-(saidas[f]||0));
+  return res;
+}
+function formasParaExibir(totais,mostrarZeros=false){
+  return FORMAS_PAGAMENTO.filter(f=>mostrarZeros||Math.abs(Number(totais[f.id]||0))>0.00001||f.id!=='nao_informado');
+}
+function resumoFormasHTML(titulo,totais,modo='info'){
+  const formas=formasParaExibir(totais,false);
+  return `<div class="payment-mini"><div class="payment-mini-title">${titulo}</div><div class="payment-mini-grid">${formas.map(f=>{
+    const val=Number(totais[f.id]||0);
+    const cls=modo==='saldo'?(val>=0?'pos':'neg'):(modo==='saida'?'neg':modo==='entrada'?'pos':'info');
+    const sinal=modo==='entrada'?'+ ':modo==='saida'?'- ':'';
+    return `<div class="payment-line ${cls}"><span>${formaPagamentoBadgeHTML(f.id)}</span><strong>${sinal}${fmt(Math.abs(val))}</strong></div>`;
+  }).join('')}</div></div>`;
+}
+function renderResumoPagamentoDashboard(){
+  const alvo=document.getElementById('pagamentoResumo');
+  if(!alvo) return;
+  const mes=mesAtualKey();
+  const entradas=totaisPorForma(['entrada'],mes);
+  const saidas=totaisPorForma(['saida','retirada','conta'],mes);
+  const saldo=saldoPorForma();
+  function card(titulo,totais,modo){
+    const formas=formasParaExibir(totais,false);
+    return `<div class="payment-summary-card"><h3>${titulo}</h3>${formas.map(f=>{
+      const val=Number(totais[f.id]||0);
+      const cls=modo==='saldo'?(val>=0?'pos':'neg'):(modo==='saida'?'neg':modo==='entrada'?'pos':'info');
+      const sinal=modo==='entrada'?'+ ':modo==='saida'?'- ':'';
+      return `<div class="payment-line ${cls}"><span>${formaPagamentoBadgeHTML(f.id)}</span><strong>${sinal}${fmt(Math.abs(val))}</strong></div>`;
+    }).join('')}</div>`;
+  }
+  alvo.innerHTML=card('📥 Entradas do mês',entradas,'entrada')+card('📤 Saídas do mês',saidas,'saida')+card('💰 Saldo acumulado',saldo,'saldo');
+}
 
 /* ====================== DASHBOARD ====================== */
 function renderDashboard(){
@@ -693,6 +800,7 @@ function renderDashboard(){
   document.getElementById('dashRetiradas').textContent = fmt(totalPorTipo('retirada',mes));
   document.getElementById('dashContas').textContent = fmt(totalPorTipo('conta',mes));
   document.getElementById('dashPendentes').textContent = fmt(pendentesMes(mes));
+  renderResumoPagamentoDashboard();
 
   // vencimentos
   const venc = document.getElementById('dashVencimentos');
@@ -711,7 +819,7 @@ function renderDashboard(){
   const ultimos = [...state.lancamentos].filter(l=>!l.deleted)
     .sort((a,b)=>sanitizarData(b.data).localeCompare(sanitizarData(a.data))||b.id.localeCompare(a.id)).slice(0,8);
   ult.innerHTML = ultimos.map(l=>linhaLancamentoHTML(l,true,true)).join('') ||
-    '<tr><td colspan="5" class="empty">Nenhum lançamento ainda.</td></tr>';
+    '<tr><td colspan="6" class="empty">Nenhum lançamento ainda.</td></tr>';
 
   if(typeof renderGraficos==='function') renderGraficos();
   if(typeof renderDica==='function') renderDica();
@@ -722,8 +830,9 @@ function addEntrada(){
   const data = document.getElementById('entData').value||todayStr();
   const desc = document.getElementById('entDesc').value.trim();
   const valor = parseFloat(document.getElementById('entValor').value);
+  const formaPagamento = normalizarFormaPagamento(document.getElementById('entForma').value||'pix');
   if(!desc||!valor||valor<=0){ toast('Preencha descrição e valor válido.','error'); return; }
-  state.lancamentos.push({id:uid(),tipo:'entrada',data,desc,valor,updatedAt:Date.now()});
+  state.lancamentos.push({id:uid(),tipo:'entrada',data,desc,valor,formaPagamento,updatedAt:Date.now()});
   saveState();
   document.getElementById('entDesc').value=''; document.getElementById('entValor').value=''; document.getElementById('entData').value=todayStr();
   renderEmpresa(); renderDashboard();
@@ -734,8 +843,9 @@ function addSaidaEmpresa(){
   const data = document.getElementById('saiData').value||todayStr();
   const desc = document.getElementById('saiDesc').value.trim();
   const valor = parseFloat(document.getElementById('saiValor').value);
+  const formaPagamento = normalizarFormaPagamento(document.getElementById('saiForma').value||'pix');
   if(!desc||!valor||valor<=0){ toast('Preencha descrição e valor válido.','error'); return; }
-  state.lancamentos.push({id:uid(),tipo:'saida',data,desc,valor,updatedAt:Date.now()});
+  state.lancamentos.push({id:uid(),tipo:'saida',data,desc,valor,formaPagamento,updatedAt:Date.now()});
   saveState();
   document.getElementById('saiDesc').value=''; document.getElementById('saiValor').value=''; document.getElementById('saiData').value=todayStr();
   renderEmpresa(); renderDashboard();
@@ -797,7 +907,9 @@ function renderContas(){
     const info = pag[c.id];
     const pago = info&&info.pago;
     const valorAtual = info&&info.valor!=null ? info.valor : c.valor;
+    const formaAtual = normalizarFormaPagamento(info&&info.formaPagamento ? info.formaPagamento : 'pix');
     const inputId = `valorConta_${mesKey}_${c.id}`;
+    const formaInputId = `formaConta_${mesKey}_${c.id}`;
     return `<tr>
       <td>${String(c.dia).padStart(2,'0')}</td>
       <td>${c.nome}</td>
@@ -805,12 +917,13 @@ function renderContas(){
         <input type="number" step="0.01" value="${valorAtual}" id="${inputId}" style="width:110px" ${pago?'disabled':''}>
         ${pago?'':`<button class="primary" style="padding:6px 10px;font-size:12px" onclick="salvarValorConta('${mesKey}','${c.id}','${inputId}')">💾 Salvar</button>`}
       </td>
+      <td>${pago?formaPagamentoBadgeHTML(formaAtual):formaPagamentoSelectHTML(formaInputId,formaAtual)}</td>
       <td>${pago?'<span class="pago-badge">PAGO</span>':'<span class="pendente-badge">PENDENTE</span>'}</td>
       <td>${pago
         ?`<button class="primary red" style="padding:6px 10px;font-size:12px" onclick="desfazerPagamento('${mesKey}','${c.id}')">Desfazer</button>`
         :`<button class="primary green" style="padding:6px 10px;font-size:12px" onclick="pagarConta('${mesKey}','${c.id}')">Marcar pago</button>`}</td>
     </tr>`;
-  }).join('') || '<tr><td colspan="5" class="empty">Nenhuma conta cadastrada.</td></tr>';
+  }).join('') || '<tr><td colspan="6" class="empty">Nenhuma conta cadastrada.</td></tr>';
   renderContasCadastro();
   saveState();
 }
@@ -850,9 +963,11 @@ function pagarConta(mesKey,contaId){
   if(!state.pagamentosPorMes[mesKey]) state.pagamentosPorMes[mesKey]={};
   const pag = state.pagamentosPorMes[mesKey];
   const valor = (pag[contaId]&&pag[contaId].valor)??conta.valor;
+  const formaEl = document.getElementById(`formaConta_${mesKey}_${contaId}`);
+  const formaPagamento = normalizarFormaPagamento((formaEl&&formaEl.value)||(pag[contaId]&&pag[contaId].formaPagamento)||'pix');
   const lancId = uid();
-  state.lancamentos.push({id:lancId,tipo:'conta',data:todayStr(),desc:`${conta.nome} (conta pessoal)`,valor,updatedAt:Date.now()});
-  pag[contaId]={pago:true,valor,lancamentoId:lancId};
+  state.lancamentos.push({id:lancId,tipo:'conta',data:todayStr(),desc:`${conta.nome} (conta pessoal)`,valor,formaPagamento,updatedAt:Date.now()});
+  pag[contaId]={pago:true,valor,lancamentoId:lancId,formaPagamento};
   saveState();
   renderContas(); renderDashboard();
   toast('✅ Conta marcada como paga!','success');
@@ -865,7 +980,7 @@ function desfazerPagamento(mesKey,contaId){
     const lanc = state.lancamentos.find(l=>l.id===info.lancamentoId);
     if(lanc){ lanc.deleted=true; lanc.updatedAt=Date.now(); }
   }
-  if(pag) pag[contaId]={pago:false,valor:info?info.valor:null};
+  if(pag) pag[contaId]={pago:false,valor:info?info.valor:null,formaPagamento:info&&info.formaPagamento?info.formaPagamento:'pix'};
   saveState(); renderContas(); renderDashboard();
   toast('↩️ Pagamento desfeito.','warning');
 }
@@ -875,8 +990,9 @@ function addRetirada(){
   const data = document.getElementById('retData').value||todayStr();
   const desc = document.getElementById('retDesc').value.trim()||'Necessidades da casa';
   const valor = parseFloat(document.getElementById('retValor').value);
+  const formaPagamento = normalizarFormaPagamento(document.getElementById('retForma').value||'pix');
   if(!valor||valor<=0){ toast('Informe um valor válido.','error'); return; }
-  state.lancamentos.push({id:uid(),tipo:'retirada',data,desc,valor,updatedAt:Date.now()});
+  state.lancamentos.push({id:uid(),tipo:'retirada',data,desc,valor,formaPagamento,updatedAt:Date.now()});
   saveState();
   document.getElementById('retDesc').value=''; document.getElementById('retValor').value=''; document.getElementById('retData').value=todayStr();
   renderRetiradas(); renderDashboard();
@@ -893,12 +1009,14 @@ function renderRetiradas(){
 /* ====================== EDIÇÃO INLINE ====================== */
 let editandoId = null;
 
-function linhaLancamentoHTML(l,comTipo,soLeitura){
+function linhaLancamentoHTML(l,comTipo,soLeitura,comForma=true){
+  const formaHTML = comForma ? `<td>${formaPagamentoBadgeHTML(l.formaPagamento)}</td>` : '';
   if(l.deleted){
     return `<tr class="linha-deletada">
       <td>${fmtData(l.data)}</td>
       ${comTipo?`<td><span class="tag ${l.tipo}">${tipoLabel(l.tipo)}</span></td>`:''}
       <td>${l.desc} <span class="deleted-badge">EXCLUÍDO</span></td>
+      ${formaHTML}
       <td>${fmt(l.valor)}</td>
       <td><button class="icon-btn" title="Excluir permanentemente" onclick="excluirDefinitivo('${l.id}')">🗑</button></td>
     </tr>`;
@@ -913,8 +1031,9 @@ function linhaLancamentoHTML(l,comTipo,soLeitura){
     </select>`;
     return `<tr>
       <td><input type="date" value="${l.data}" id="ed-data-${l.id}" style="width:128px;min-width:110px"></td>
-      <td>${tipoSel}</td>
+      ${comTipo?`<td>${tipoSel}</td>`:''}
       <td><input type="text" value="${d}" id="ed-desc-${l.id}" style="width:100%;min-width:90px"></td>
+      ${comForma?`<td>${formaPagamentoSelectHTML('ed-forma-'+l.id,l.formaPagamento)}</td>`:''}
       <td><input type="number" step="0.01" value="${l.valor}" id="ed-valor-${l.id}" style="width:100px"></td>
       <td class="row-actions">
         <button class="icon-btn" onclick="salvarEdicao('${l.id}')">✅</button>
@@ -926,6 +1045,7 @@ function linhaLancamentoHTML(l,comTipo,soLeitura){
     <td>${fmtData(l.data)}</td>
     ${comTipo?`<td><span class="tag ${l.tipo}">${tipoLabel(l.tipo)}</span></td>`:''}
     <td>${l.desc}</td>
+    ${formaHTML}
     <td>${fmt(l.valor)}</td>
     <td class="row-actions">${soLeitura?'':`<button class="icon-btn" onclick="editarLancamento('${l.id}')">✏️</button><button class="icon-btn" onclick="removerLancamento('${l.id}')">🗑</button>`}</td>
   </tr>`;
@@ -948,6 +1068,8 @@ function salvarEdicao(id){
   if(!novaData||!novaDesc||isNaN(novoValor)||novoValor<0){ toast('Dados inválidos.','error'); return; }
   const tipoEl = document.getElementById('ed-tipo-'+id);
   if(tipoEl) l.tipo=tipoEl.value;
+  const formaEl = document.getElementById('ed-forma-'+id);
+  if(formaEl) l.formaPagamento = normalizarFormaPagamento(formaEl.value);
   l.data=novaData; l.desc=novaDesc; l.valor=novoValor; l.updatedAt=Date.now();
   editandoId=null;
   saveState();
@@ -1089,6 +1211,7 @@ function renderRelatorio(){
     <td>${fmtData(l.data)}</td>
     <td><span class="tag ${l.tipo}">${tipoLabel(l.tipo)}</span></td>
     <td>${l.desc}</td>
+    <td>${formaPagamentoBadgeHTML(l.formaPagamento)}</td>
     <td>${fmt(l.valor)}</td>
   </tr>`).join('');
   document.getElementById('relEmpty').style.display=lista.length?'none':'block';
@@ -1099,10 +1222,10 @@ function exportarRelatorioExcel(){
   const ini=document.getElementById('relDataIni').value;
   const fim=document.getElementById('relDataFim').value;
   const lista=lancamentosNoPeriodo().sort((a,b)=>a.data.localeCompare(b.data));
-  const linhas=lista.map(l=>({'Data':fmtData(l.data),'Categoria':tipoLabel(l.tipo),'Descrição':l.desc,'Valor (R$)':Number(l.valor)}));
+  const linhas=lista.map(l=>({'Data':fmtData(l.data),'Categoria':tipoLabel(l.tipo),'Descrição':l.desc,'Forma':formaPagamentoLabel(l.formaPagamento),'Valor (R$)':Number(l.valor)}));
   const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.json_to_sheet(linhas.length?linhas:[{'Data':'','Categoria':'','Descrição':'(sem lançamentos)','Valor (R$)':''}]);
-  ws['!cols']=[{wch:12},{wch:20},{wch:34},{wch:14}];
+  const ws=XLSX.utils.json_to_sheet(linhas.length?linhas:[{'Data':'','Categoria':'','Descrição':'(sem lançamentos)','Forma':'','Valor (R$)':''}]);
+  ws['!cols']=[{wch:12},{wch:20},{wch:34},{wch:20},{wch:14}];
   XLSX.utils.book_append_sheet(wb,ws,'Relatório');
   XLSX.writeFile(wb,`Relatorio_${ini}_a_${fim}.xlsx`);
   toast('📊 Relatório exportado!','success');
@@ -1126,7 +1249,7 @@ function imprimirRelatorioPeriodo(){
       {label:'Retiradas Diárias',valor:fmt(totais.retirada)},
       {label:'Contas Pessoais',valor:fmt(totais.conta)}
     ],
-    linhas:lista.map(l=>({data:fmtData(l.data),tag:tipoLabel(l.tipo),desc:l.desc,valor:fmt(l.valor)}))
+    linhas:lista.map(l=>({data:fmtData(l.data),tag:tipoLabel(l.tipo),desc:l.desc,forma:formaPagamentoLabel(l.formaPagamento),valor:fmt(l.valor)}))
   });
 }
 
@@ -1177,7 +1300,7 @@ function abrirModal(tipo){
     document.getElementById('reportTotal').textContent=fmt(total);
     const rows=state.lancamentos.filter(l=>!l.deleted&&['saida','retirada','conta'].includes(l.tipo)&&sanitizarData(l.data).slice(0,7)===mesKey)
       .sort((a,b)=>b.data.localeCompare(a.data));
-    body.innerHTML=`<div class="report-row"><span class="rr-data">📤</span><span class="rr-desc">Saídas da Empresa</span><span class="rr-val" style="color:var(--red)">- ${fmt(sai)}</span></div>
+    body.innerHTML=resumoFormasHTML('Saídas por forma',totaisPorForma(['saida','retirada','conta'],mesKey),'saida') + `<div class="report-row"><span class="rr-data">📤</span><span class="rr-desc">Saídas da Empresa</span><span class="rr-val" style="color:var(--red)">- ${fmt(sai)}</span></div>
     <div class="report-row"><span class="rr-data">🛒</span><span class="rr-desc">Retiradas Diárias</span><span class="rr-val" style="color:var(--yellow)">- ${fmt(ret)}</span></div>
     <div class="report-row"><span class="rr-data">💳</span><span class="rr-desc">Contas Pessoais Pagas</span><span class="rr-val" style="color:var(--purple)">- ${fmt(con)}</span></div>
     <div class="report-row" style="margin-top:8px;background:rgba(255,255,255,.03);border-radius:8px;padding:12px 8px;">
@@ -1189,12 +1312,12 @@ function abrirModal(tipo){
       const cor=l.tipo==='saida'?'var(--red)':l.tipo==='retirada'?'var(--yellow)':'var(--purple)';
       return `<div class="report-row">
         <span class="rr-data">${fmtData(l.data)}</span>
-        <span class="rr-desc">${l.desc} <span style="font-size:10px;color:var(--txt2)">[${tipoLabel(l.tipo)}]</span></span>
+        <span class="rr-desc">${l.desc} <span style="font-size:10px;color:var(--txt2)">[${tipoLabel(l.tipo)} · ${formaPagamentoLabel(l.formaPagamento)}]</span></span>
         <span class="rr-val" style="color:${cor}">- ${fmt(l.valor)}</span>
       </div>`;
     }).join('')+'</div>';
     relatorioAtualParaImpressao={titulo:'📤 Saídas Totais do Mês',subtitulo:mesLabelCap,totalLabel:'Total de Saídas',totalValor:fmt(total),
-      linhas:[{desc:'Saídas da Empresa',valor:'- '+fmt(sai)},{desc:'Retiradas Diárias',valor:'- '+fmt(ret)},{desc:'Contas Pessoais Pagas',valor:'- '+fmt(con)},{desc:'TOTAL',valor:'- '+fmt(total),destaque:true},...rows.map(l=>({data:fmtData(l.data),tag:tipoLabel(l.tipo),desc:l.desc,valor:'- '+fmt(l.valor)}))]};
+      linhas:[{desc:'Saídas da Empresa',valor:'- '+fmt(sai)},{desc:'Retiradas Diárias',valor:'- '+fmt(ret)},{desc:'Contas Pessoais Pagas',valor:'- '+fmt(con)},{desc:'TOTAL',valor:'- '+fmt(total),destaque:true},...rows.map(l=>({data:fmtData(l.data),tag:tipoLabel(l.tipo),desc:l.desc,forma:formaPagamentoLabel(l.formaPagamento),valor:'- '+fmt(l.valor)}))]};
   } else if(tipo==='saldo'){
     const ent=totalPorTipo('entrada');
     const sai2=totalPorTipo('saida');
@@ -1214,31 +1337,32 @@ function abrirModal(tipo){
       <span class="rr-data">💰</span><span class="rr-desc" style="font-weight:700;">Saldo (Entradas − Saídas − Retiradas − Contas)</span>
       <span class="rr-val" style="color:${totalSaldo>=0?'var(--green)':'var(--red)'};font-size:17px;">${fmt(totalSaldo)}</span>
     </div>
+    ${resumoFormasHTML('Saldo por forma',saldoPorForma(),'saldo')}
     <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px;">` +
     rowsSaldo.map(l=>{
       const cor=l.tipo==='entrada'?'var(--green)':l.tipo==='saida'?'var(--red)':l.tipo==='retirada'?'var(--yellow)':'var(--purple)';
       const sinal=l.tipo==='entrada'?'+':'-';
       return `<div class="report-row">
         <span class="rr-data">${fmtData(l.data)}</span>
-        <span class="rr-desc">${l.desc} <span style="font-size:10px;color:var(--txt2)">[${tipoLabel(l.tipo)}]</span></span>
+        <span class="rr-desc">${l.desc} <span style="font-size:10px;color:var(--txt2)">[${tipoLabel(l.tipo)} · ${formaPagamentoLabel(l.formaPagamento)}]</span></span>
         <span class="rr-val" style="color:${cor}">${sinal} ${fmt(l.valor)}</span>
       </div>`;
     }).join('')+'</div>';
     relatorioAtualParaImpressao={titulo:'💰 Composição do Saldo',subtitulo:'Saldo acumulado (todo o período)',totalLabel:'Saldo da Empresa',totalValor:fmt(totalSaldo),
-      linhas:[{desc:'Entradas',valor:'+ '+fmt(ent)},{desc:'Saídas da Empresa',valor:'- '+fmt(sai2)},{desc:'Retiradas Diárias',valor:'- '+fmt(ret2)},{desc:'Contas Pessoais Pagas',valor:'- '+fmt(con2)},{desc:'SALDO',valor:fmt(totalSaldo),destaque:true},...rowsSaldo.map(l=>({data:fmtData(l.data),tag:tipoLabel(l.tipo),desc:l.desc,valor:(l.tipo==='entrada'?'+ ':'- ')+fmt(l.valor)}))]};
+      linhas:[{desc:'Entradas',valor:'+ '+fmt(ent)},{desc:'Saídas da Empresa',valor:'- '+fmt(sai2)},{desc:'Retiradas Diárias',valor:'- '+fmt(ret2)},{desc:'Contas Pessoais Pagas',valor:'- '+fmt(con2)},{desc:'SALDO',valor:fmt(totalSaldo),destaque:true},...rowsSaldo.map(l=>({data:fmtData(l.data),tag:tipoLabel(l.tipo),desc:l.desc,forma:formaPagamentoLabel(l.formaPagamento),valor:(l.tipo==='entrada'?'+ ':'- ')+fmt(l.valor)}))]};
   } else {
     const rows=state.lancamentos.filter(l=>!l.deleted&&conf.tipos.includes(l.tipo)&&sanitizarData(l.data).slice(0,7)===mesKey)
       .sort((a,b)=>b.data.localeCompare(a.data));
     const total=rows.reduce((s,l)=>s+Number(l.valor),0);
     document.getElementById('reportTotal').style.color=conf.cor;
     document.getElementById('reportTotal').textContent=(tipo==='entrada'?'+':'-')+' '+fmt(total);
-    body.innerHTML=rows.map(l=>`<div class="report-row">
+    body.innerHTML=resumoFormasHTML(tipo==='entrada'?'Entradas por forma':'Saídas por forma',totaisPorForma(conf.tipos,mesKey),tipo==='entrada'?'entrada':'saida') + (rows.map(l=>`<div class="report-row">
       <span class="rr-data">${fmtData(l.data)}</span>
-      <span class="rr-desc">${l.desc}</span>
+      <span class="rr-desc">${l.desc} <span style="font-size:10px;color:var(--txt2)">[${formaPagamentoLabel(l.formaPagamento)}]</span></span>
       <span class="rr-val" style="color:${conf.cor}">${tipo==='entrada'?'+':'-'} ${fmt(l.valor)}</span>
-    </div>`).join('') || '<div class="report-empty">Nenhum lançamento este mês.</div>';
+    </div>`).join('') || '<div class="report-empty">Nenhum lançamento este mês.</div>');
     relatorioAtualParaImpressao={titulo:`${conf.icon} ${conf.label}`,subtitulo:mesLabelCap,totalLabel:conf.label,totalValor:fmt(total),
-      linhas:rows.map(l=>({data:fmtData(l.data),desc:l.desc,valor:(tipo==='entrada'?'+ ':'- ')+fmt(l.valor)}))};
+      linhas:rows.map(l=>({data:fmtData(l.data),desc:l.desc,forma:formaPagamentoLabel(l.formaPagamento),valor:(tipo==='entrada'?'+ ':'- ')+fmt(l.valor)}))};
   }
   abrirPainelRelatorio();
 }
@@ -1265,12 +1389,12 @@ function abrirRelatorioMes(mesKey,mesLabel){
     const cor=l.tipo==='entrada'?'var(--green)':l.tipo==='retirada'?'var(--yellow)':l.tipo==='conta'?'var(--purple)':'var(--red)';
     return `<div class="report-row">
       <span class="rr-data">${fmtData(l.data)}</span>
-      <span class="rr-desc">${l.desc} <span style="font-size:10px;color:var(--txt2)">[${tipoLabel(l.tipo)}]</span></span>
+      <span class="rr-desc">${l.desc} <span style="font-size:10px;color:var(--txt2)">[${tipoLabel(l.tipo)} · ${formaPagamentoLabel(l.formaPagamento)}]</span></span>
       <span class="rr-val" style="color:${cor}">${l.tipo==='entrada'?'+':'-'} ${fmt(l.valor)}</span>
     </div>`;
   }).join(''):'<div class="report-empty">Nenhum lançamento neste mês.</div>';
   relatorioAtualParaImpressao={titulo:'📅 Resumo do mês',subtitulo:mesLabel.toUpperCase(),totalLabel:'Saldo do mês',totalValor:fmt(saldo),
-    linhas:rows.map(l=>({data:fmtData(l.data),tag:tipoLabel(l.tipo),desc:l.desc,valor:(l.tipo==='entrada'?'+ ':'- ')+fmt(l.valor)}))};
+    linhas:rows.map(l=>({data:fmtData(l.data),tag:tipoLabel(l.tipo),desc:l.desc,forma:formaPagamentoLabel(l.formaPagamento),valor:(l.tipo==='entrada'?'+ ':'- ')+fmt(l.valor)}))};
   abrirPainelRelatorio();
 }
 function abrirModalMes(k,l){ abrirRelatorioMes(k,l); }
@@ -1288,12 +1412,14 @@ function imprimirRelatorioGenerico(dados){
   <table class="imp-table"><thead><tr>
     ${dados.linhas[0]&&dados.linhas[0].data?'<th>Data</th>':''}
     ${dados.linhas[0]&&dados.linhas[0].tag?'<th>Tipo</th>':''}
-    <th>Descrição</th><th style="text-align:right">Valor</th>
+    <th>Descrição</th>
+    ${dados.linhas[0]&&dados.linhas[0].forma?'<th>Forma</th>':''}
+    <th style="text-align:right">Valor</th>
   </tr></thead><tbody>
   ${dados.linhas.map(l=>`<tr${l.destaque?' class="imp-destaque"':''}>
     ${l.data?`<td>${l.data}</td>`:''}
     ${l.tag?`<td><span class="imp-tag">${l.tag}</span></td>`:''}
-    <td>${l.desc}</td><td style="text-align:right;font-weight:${l.destaque?700:400}">${l.valor}</td>
+    <td>${l.desc}</td>${l.forma?`<td>${l.forma}</td>`:''}<td style="text-align:right;font-weight:${l.destaque?700:400}">${l.valor}</td>
   </tr>`).join('')}
   </tbody></table>
   <div class="imp-rodape">Gerado em ${new Date().toLocaleString('pt-BR')} · Controle Financeiro</div>`;
@@ -1304,20 +1430,20 @@ function imprimirRelatorioGenerico(dados){
 function montarWorkbook(){
   function linhas(tipo){
     return state.lancamentos.filter(l=>!l.deleted&&l.tipo===tipo).sort((a,b)=>a.data.localeCompare(b.data))
-      .map(l=>({'Data':fmtData(l.data),'Descrição':l.desc,'Valor (R$)':Number(l.valor)}));
+      .map(l=>({'Data':fmtData(l.data),'Descrição':l.desc,'Forma':formaPagamentoLabel(l.formaPagamento),'Valor (R$)':Number(l.valor)}));
   }
   const wb=XLSX.utils.book_new();
-  const shEnt=XLSX.utils.json_to_sheet(linhas('entrada').length?linhas('entrada'):[{Data:'',Descrição:'(sem dados)','Valor (R$)':''}]);
-  shEnt['!cols']=[{wch:12},{wch:34},{wch:14}];
+  const shEnt=XLSX.utils.json_to_sheet(linhas('entrada').length?linhas('entrada'):[{Data:'',Descrição:'(sem dados)','Forma':'','Valor (R$)':''}]);
+  shEnt['!cols']=[{wch:12},{wch:34},{wch:20},{wch:14}];
   XLSX.utils.book_append_sheet(wb,shEnt,'Entradas');
-  const shSai=XLSX.utils.json_to_sheet(linhas('saida').length?linhas('saida'):[{Data:'',Descrição:'(sem dados)','Valor (R$)':''}]);
-  shSai['!cols']=[{wch:12},{wch:34},{wch:14}];
+  const shSai=XLSX.utils.json_to_sheet(linhas('saida').length?linhas('saida'):[{Data:'',Descrição:'(sem dados)','Forma':'','Valor (R$)':''}]);
+  shSai['!cols']=[{wch:12},{wch:34},{wch:20},{wch:14}];
   XLSX.utils.book_append_sheet(wb,shSai,'Saidas Empresa');
-  const shRet=XLSX.utils.json_to_sheet(linhas('retirada').length?linhas('retirada'):[{Data:'',Descrição:'(sem dados)','Valor (R$)':''}]);
-  shRet['!cols']=[{wch:12},{wch:34},{wch:14}];
+  const shRet=XLSX.utils.json_to_sheet(linhas('retirada').length?linhas('retirada'):[{Data:'',Descrição:'(sem dados)','Forma':'','Valor (R$)':''}]);
+  shRet['!cols']=[{wch:12},{wch:34},{wch:20},{wch:14}];
   XLSX.utils.book_append_sheet(wb,shRet,'Retiradas');
-  const shCon=XLSX.utils.json_to_sheet(linhas('conta').length?linhas('conta'):[{Data:'',Descrição:'(sem dados)','Valor (R$)':''}]);
-  shCon['!cols']=[{wch:12},{wch:34},{wch:14}];
+  const shCon=XLSX.utils.json_to_sheet(linhas('conta').length?linhas('conta'):[{Data:'',Descrição:'(sem dados)','Forma':'','Valor (R$)':''}]);
+  shCon['!cols']=[{wch:12},{wch:34},{wch:20},{wch:14}];
   XLSX.utils.book_append_sheet(wb,shCon,'Contas Pessoais');
   // Resumo
   const mes=mesAtualKey();
@@ -1332,6 +1458,15 @@ function montarWorkbook(){
   const shRes=XLSX.utils.json_to_sheet(resumo);
   shRes['!cols']=[{wch:28},{wch:16}];
   XLSX.utils.book_append_sheet(wb,shRes,'Resumo');
+  const linhasPagamento=[];
+  FORMAS_PAGAMENTO.forEach(f=>{
+    linhasPagamento.push({'Grupo':'Entradas do mês','Forma':f.label,'Valor (R$)':totaisPorForma(['entrada'],mes)[f.id]||0});
+    linhasPagamento.push({'Grupo':'Saídas do mês','Forma':f.label,'Valor (R$)':totaisPorForma(['saida','retirada','conta'],mes)[f.id]||0});
+    linhasPagamento.push({'Grupo':'Saldo acumulado','Forma':f.label,'Valor (R$)':saldoPorForma()[f.id]||0});
+  });
+  const shPag=XLSX.utils.json_to_sheet(linhasPagamento);
+  shPag['!cols']=[{wch:20},{wch:20},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,shPag,'Por Pagamento');
   return wb;
 }
 function exportarExcel(){
@@ -1624,6 +1759,7 @@ function mergeComSheets(remoto){
   state.lancamentos.forEach(l=>mapaLanc[l.id]=l);
   (remoto.lancamentos||[]).forEach(r=>{
     if(r.data){ const d=String(r.data); if(d.length>10){ const p=new Date(d); r.data=isNaN(p.getTime())?d.slice(0,10):dataLocalStr(p); } else r.data=d.slice(0,10); }
+    r.formaPagamento = normalizarFormaPagamento(r.formaPagamento);
     const local=mapaLanc[r.id];
     if(!local) state.lancamentos.push(r);
     else if((r.updatedAt||0)>(local.updatedAt||0)) Object.assign(local,r);
@@ -1677,8 +1813,9 @@ async function zerarTudoAgora(){
 
 /* ====================== GAS CODE ====================== */
 const GAS_CODE = `// ============================================================
-// Controle Financeiro v2 - Google Apps Script (Code.gs)
-// Sincronização MANUAL - 5 abas: Lancamentos (Entradas), SaidasEmpresa, ContasFixas, Retiradas, Historico
+// Controle Financeiro v3 - Google Apps Script (Code.gs)
+// Sincronização MANUAL - com FormaPagamento em entradas, saídas, retiradas e contas
+// Abas: Lancamentos (Entradas), SaidasEmpresa, ContasFixas, Retiradas, Historico
 // ============================================================
 
 function doPost(e) {
@@ -1686,7 +1823,6 @@ function doPost(e) {
     var dados = JSON.parse(e.postData.contents);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-    // Comando de zerar tudo
     if (dados.zerarTudo) {
       ['Lancamentos', 'SaidasEmpresa', 'ContasFixas', 'Retiradas', 'Historico'].forEach(function(nome) {
         var sh = obterOuCriarAba(ss, nome);
@@ -1695,34 +1831,28 @@ function doPost(e) {
       return ok();
     }
 
-    // Salvar lançamentos
     if (dados.lancamentos) {
-      // Entradas (faturamento/recebimento) em aba própria
       var shLanc = obterOuCriarAba(ss, 'Lancamentos');
-      garantirCabecalho(shLanc, ['ID','Data','Tipo','Descricao','Valor','UpdatedAt','Deleted']);
+      garantirCabecalho(shLanc, ['ID','Data','Tipo','Descricao','Valor','FormaPagamento','UpdatedAt','Deleted']);
       upsertRegistros(shLanc, dados.lancamentos.filter(function(l){ return l.tipo === 'entrada'; }),
-        function(l){ return [l.id, l.data, l.tipo, l.desc, l.valor, l.updatedAt||0, l.deleted?'TRUE':'FALSE']; });
+        function(l){ return [l.id, l.data, l.tipo, l.desc, l.valor, normalizarForma(l.formaPagamento), l.updatedAt||0, l.deleted?'TRUE':'FALSE']; });
 
-      // Saídas da empresa em aba separada (separada de Retiradas/saída diária)
       var shSaida = obterOuCriarAba(ss, 'SaidasEmpresa');
-      garantirCabecalho(shSaida, ['ID','Data','Descricao','Valor','UpdatedAt','Deleted']);
+      garantirCabecalho(shSaida, ['ID','Data','Descricao','Valor','FormaPagamento','UpdatedAt','Deleted']);
       upsertRegistros(shSaida, dados.lancamentos.filter(function(l){ return l.tipo === 'saida'; }),
-        function(l){ return [l.id, l.data, l.desc, l.valor, l.updatedAt||0, l.deleted?'TRUE':'FALSE']; });
+        function(l){ return [l.id, l.data, l.desc, l.valor, normalizarForma(l.formaPagamento), l.updatedAt||0, l.deleted?'TRUE':'FALSE']; });
 
-      // Retiradas (saída diária) em aba separada
       var shRet = obterOuCriarAba(ss, 'Retiradas');
-      garantirCabecalho(shRet, ['ID','Data','Descricao','Valor','UpdatedAt','Deleted']);
+      garantirCabecalho(shRet, ['ID','Data','Descricao','Valor','FormaPagamento','UpdatedAt','Deleted']);
       upsertRegistros(shRet, dados.lancamentos.filter(function(l){ return l.tipo === 'retirada'; }),
-        function(l){ return [l.id, l.data, l.desc, l.valor, l.updatedAt||0, l.deleted?'TRUE':'FALSE']; });
+        function(l){ return [l.id, l.data, l.desc, l.valor, normalizarForma(l.formaPagamento), l.updatedAt||0, l.deleted?'TRUE':'FALSE']; });
 
-      // Contas pessoais pagas em Historico
       var shHist = obterOuCriarAba(ss, 'Historico');
-      garantirCabecalho(shHist, ['ID','Data','Tipo','Descricao','Valor','Status']);
+      garantirCabecalho(shHist, ['ID','Data','Tipo','Descricao','Valor','FormaPagamento','UpdatedAt','Deleted','Status']);
       upsertRegistros(shHist, dados.lancamentos.filter(function(l){ return l.tipo === 'conta'; }),
-        function(l){ return [l.id, l.data, 'Conta Pessoal', l.desc, l.valor, l.deleted?'Excluido':'Pago']; });
+        function(l){ return [l.id, l.data, 'Conta Pessoal', l.desc, l.valor, normalizarForma(l.formaPagamento), l.updatedAt||0, l.deleted?'TRUE':'FALSE', l.deleted?'Excluido':'Pago']; });
     }
 
-    // Salvar contas fixas
     if (dados.contasFixas) {
       var shContas = obterOuCriarAba(ss, 'ContasFixas');
       garantirCabecalho(shContas, ['ID','Nome','Dia','Valor','UpdatedAt','Deleted']);
@@ -1741,49 +1871,66 @@ function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var resultado = { lancamentos: [], contasFixas: [] };
 
-  // Ler Lancamentos (Entradas)
   var shLanc = ss.getSheetByName('Lancamentos');
   if (shLanc && shLanc.getLastRow() > 1) {
-    var rows = shLanc.getRange(2, 1, shLanc.getLastRow() - 1, 7).getValues();
+    var rows = shLanc.getRange(2, 1, shLanc.getLastRow() - 1, Math.max(8, shLanc.getLastColumn())).getValues();
     rows.forEach(function(r) {
       if (!r[0]) return;
+      var novo = r[7] !== '' && r[7] !== null && r[7] !== undefined;
       resultado.lancamentos.push({
-        id: String(r[0]), data: formatarData(r[1]), tipo: String(r[2]),
-        desc: String(r[3]), valor: Number(r[4]), updatedAt: Number(r[5])||0,
-        deleted: String(r[6]).toUpperCase() === 'TRUE'
+        id: String(r[0]), data: formatarData(r[1]), tipo: String(r[2] || 'entrada'),
+        desc: String(r[3]), valor: Number(r[4]), formaPagamento: novo ? normalizarForma(r[5]) : 'nao_informado',
+        updatedAt: novo ? (Number(r[6])||0) : (Number(r[5])||0),
+        deleted: novo ? (String(r[7]).toUpperCase() === 'TRUE') : (String(r[6]).toUpperCase() === 'TRUE')
       });
     });
   }
 
-  // Ler SaidasEmpresa
   var shSaida = ss.getSheetByName('SaidasEmpresa');
   if (shSaida && shSaida.getLastRow() > 1) {
-    var rowsS = shSaida.getRange(2, 1, shSaida.getLastRow() - 1, 6).getValues();
+    var rowsS = shSaida.getRange(2, 1, shSaida.getLastRow() - 1, Math.max(7, shSaida.getLastColumn())).getValues();
     rowsS.forEach(function(r) {
       if (!r[0]) return;
+      var novo = r[6] !== '' && r[6] !== null && r[6] !== undefined;
       resultado.lancamentos.push({
         id: String(r[0]), data: formatarData(r[1]), tipo: 'saida',
-        desc: String(r[2]), valor: Number(r[3]), updatedAt: Number(r[4])||0,
-        deleted: String(r[5]).toUpperCase() === 'TRUE'
+        desc: String(r[2]), valor: Number(r[3]), formaPagamento: novo ? normalizarForma(r[4]) : 'nao_informado',
+        updatedAt: novo ? (Number(r[5])||0) : (Number(r[4])||0),
+        deleted: novo ? (String(r[6]).toUpperCase() === 'TRUE') : (String(r[5]).toUpperCase() === 'TRUE')
       });
     });
   }
 
-  // Ler Retiradas
   var shRet = ss.getSheetByName('Retiradas');
   if (shRet && shRet.getLastRow() > 1) {
-    var rowsR = shRet.getRange(2, 1, shRet.getLastRow() - 1, 6).getValues();
+    var rowsR = shRet.getRange(2, 1, shRet.getLastRow() - 1, Math.max(7, shRet.getLastColumn())).getValues();
     rowsR.forEach(function(r) {
       if (!r[0]) return;
+      var novo = r[6] !== '' && r[6] !== null && r[6] !== undefined;
       resultado.lancamentos.push({
         id: String(r[0]), data: formatarData(r[1]), tipo: 'retirada',
-        desc: String(r[2]), valor: Number(r[3]), updatedAt: Number(r[4])||0,
-        deleted: String(r[5]).toUpperCase() === 'TRUE'
+        desc: String(r[2]), valor: Number(r[3]), formaPagamento: novo ? normalizarForma(r[4]) : 'nao_informado',
+        updatedAt: novo ? (Number(r[5])||0) : (Number(r[4])||0),
+        deleted: novo ? (String(r[6]).toUpperCase() === 'TRUE') : (String(r[5]).toUpperCase() === 'TRUE')
       });
     });
   }
 
-  // Ler ContasFixas
+  var shHist = ss.getSheetByName('Historico');
+  if (shHist && shHist.getLastRow() > 1) {
+    var rowsH = shHist.getRange(2, 1, shHist.getLastRow() - 1, Math.max(9, shHist.getLastColumn())).getValues();
+    rowsH.forEach(function(r) {
+      if (!r[0]) return;
+      var novo = r[8] !== '' && r[8] !== null && r[8] !== undefined;
+      resultado.lancamentos.push({
+        id: String(r[0]), data: formatarData(r[1]), tipo: 'conta',
+        desc: String(r[3]), valor: Number(r[4]), formaPagamento: novo ? normalizarForma(r[5]) : 'nao_informado',
+        updatedAt: novo ? (Number(r[6])||0) : 0,
+        deleted: novo ? (String(r[7]).toUpperCase() === 'TRUE') : (String(r[5]).toLowerCase() === 'excluido')
+      });
+    });
+  }
+
   var shContas = ss.getSheetByName('ContasFixas');
   if (shContas && shContas.getLastRow() > 1) {
     var rowsC = shContas.getRange(2, 1, shContas.getLastRow() - 1, 6).getValues();
@@ -1801,8 +1948,16 @@ function doGet(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ---- Helpers ----
 function ok(){ return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON); }
+
+function normalizarForma(fp) {
+  var s = String(fp || '').toLowerCase();
+  if (s === 'pix') return 'pix';
+  if (s === 'dinheiro') return 'dinheiro';
+  if (s === 'debito' || s === 'débito') return 'debito';
+  if (s === 'credito' || s === 'crédito') return 'credito';
+  return 'nao_informado';
+}
 
 function formatarData(val) {
   if (val instanceof Date) return Utilities.formatDate(val, 'America/Fortaleza', 'yyyy-MM-dd');
@@ -1818,6 +1973,7 @@ function obterOuCriarAba(ss, nome) {
 
 function garantirCabecalho(sh, cols) {
   if (sh.getLastRow() === 0) sh.appendRow(cols);
+  else sh.getRange(1, 1, 1, cols.length).setValues([cols]);
 }
 
 function upsertRegistros(sh, items, rowFn) {
@@ -1866,6 +2022,8 @@ function copiarAppsScript(){
     if(!l.data) return;
     const d=String(l.data);
     if(d.length>10){ const p=new Date(d); l.data=isNaN(p.getTime())?d.slice(0,10):dataLocalStr(p); alt=true; }
+    const fp=normalizarFormaPagamento(l.formaPagamento);
+    if(l.formaPagamento!==fp){ l.formaPagamento=fp; alt=true; }
   });
   if(alt) saveState();
 })();
