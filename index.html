@@ -375,6 +375,10 @@ small.hint{color:var(--txt2);font-size:11px;display:block;margin-top:6px;}
 
   <section class="block">
     <h2>📋 Movimentos da Empresa</h2>
+    <div class="mes-selector">
+      <label style="margin:0;">Mês de referência:</label>
+      <select id="mesEmpresaSelect" onchange="renderEmpresa()"></select>
+    </div>
     <div class="table-wrap"><table>
       <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Forma</th><th>Valor</th><th></th></tr></thead>
       <tbody id="empresaTable"></tbody>
@@ -854,7 +858,8 @@ function addSaidaEmpresa(){
 
 function renderEmpresa(){
   const tbody = document.getElementById('empresaTable');
-  const rows = state.lancamentos.filter(l=>!l.deleted&&(l.tipo==='entrada'||l.tipo==='saida'))
+  const mesKey = document.getElementById('mesEmpresaSelect').value || mesAtualKey();
+  const rows = state.lancamentos.filter(l=>!l.deleted&&(l.tipo==='entrada'||l.tipo==='saida')&&sanitizarData(l.data).slice(0,7)===mesKey)
     .sort((a,b)=>b.data.localeCompare(a.data));
   tbody.innerHTML = rows.map(l=>linhaLancamentoHTML(l,true,false)).join('');
   document.getElementById('empresaEmpty').style.display = rows.length?'none':'block';
@@ -863,6 +868,22 @@ function renderEmpresa(){
 /* ====================== CONTAS FIXAS ====================== */
 function populaMesSelect(){
   const sel = document.getElementById('mesContasSelect');
+  sel.innerHTML='';
+  const hoje = new Date();
+  for(let i=-3;i<=6;i++){
+    const d = new Date(hoje.getFullYear(),hoje.getMonth()+i,1);
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const label = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+    const opt = document.createElement('option');
+    opt.value=key; opt.textContent=label.charAt(0).toUpperCase()+label.slice(1);
+    if(key===mesAtualKey()) opt.selected=true;
+    sel.appendChild(opt);
+  }
+}
+
+function populaMesEmpresaSelect(){
+  const sel = document.getElementById('mesEmpresaSelect');
+  if(!sel) return;
   sel.innerHTML='';
   const hoje = new Date();
   for(let i=-3;i<=6;i++){
@@ -2029,6 +2050,7 @@ function copiarAppsScript(){
 })();
 
 populaMesSelect();
+populaMesEmpresaSelect();
 preencherDatasComHoje();
 renderDashboard();
 renderEmpresa();
